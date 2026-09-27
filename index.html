@@ -6,49 +6,679 @@
 <meta name="color-scheme" content="light dark">
 <title>PFG SMS Health Monitor</title>
 <style>
-:root{color-scheme:light;--n0:oklch(99% .005 195);--n1:oklch(96% .008 195);--n2:oklch(92% .012 195);--n3:oklch(85% .016 195);--n4:oklch(72% .02 195);--n5:oklch(57% .025 195);--n6:oklch(45% .03 195);--n7:oklch(34% .03 195);--n8:oklch(24% .025 195);--n9:oklch(15% .02 195);--accent:oklch(54% .105 195);--accent-text:#fff;--surface:var(--n0);--raised: #fff;--border:var(--n2);--muted:var(--n6);--text:var(--n9);--shadow:0 1px 2px #102a3010,0 5px 18px #102a3010;--green:#176b42;--green-bg:#e5f5eb;--red:#a32631;--red-bg:#ffebec;--amber:#7a4a00;--amber-bg:#fff2d3;--radius-sm:6px;--radius-md:10px;--space:8px;--transition:180ms ease}
+:root{color-scheme:light;--n0:oklch(99% .005 195);--n1:oklch(96% .008 195);--n2:oklch(92% .012 195);--n3:oklch(85% .016 195);--n4:oklch(72% .02 195);--n5:oklch(57% .025 195);--n6:oklch(45% .03 195);--n7:oklch(34% .03 195);--n8:oklch(24% .025 195);--n9:oklch(15% .02 195);--accent:oklch(54% .105 195);--accent-text:#fff;--surface:var(--n0);--raised:#fff;--border:var(--n2);--muted:var(--n6);--text:var(--n9);--shadow:0 1px 2px #102a3010,0 5px 18px #102a3010;--green:#176b42;--green-bg:#e5f5eb;--red:#a32631;--red-bg:#ffebec;--amber:#7a4a00;--amber-bg:#fff2d3;--radius-sm:6px;--radius-md:10px;--space:8px;--transition:180ms ease}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--surface:oklch(17% .018 195);--raised:oklch(21% .02 195);--border:oklch(31% .025 195);--muted:oklch(75% .025 195);--text:oklch(95% .012 195);--accent:oklch(72% .11 195);--accent-text:#09242a;--green:#9be2b7;--green-bg:#193a2a;--red:#ffabb0;--red-bg:#421e23;--amber:#ffd27b;--amber-bg:#463416;--shadow:0 1px 2px #0005,0 5px 18px #0002}}
 :root[data-theme="dark"]{color-scheme:dark;--surface:oklch(17% .018 195);--raised:oklch(21% .02 195);--border:oklch(31% .025 195);--muted:oklch(75% .025 195);--text:oklch(95% .012 195);--accent:oklch(72% .11 195);--accent-text:#09242a;--green:#9be2b7;--green-bg:#193a2a;--red:#ffabb0;--red-bg:#421e23;--amber:#ffd27b;--amber-bg:#463416;--shadow:0 1px 2px #0005,0 5px 18px #0002}
-*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;transition:color var(--transition),background var(--transition)}button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:1100px;margin:auto;padding:32px 24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}.eyebrow{color:var(--accent);font-size:.78rem;font-weight:750;letter-spacing:.11em;text-transform:uppercase}h1{font-size:clamp(1.7rem,4vw,2.25rem);line-height:1.2;margin:4px 0}p{margin:4px 0;color:var(--muted)}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--raised);color:var(--text);padding:9px 14px;font-weight:650;transition:color var(--transition),background var(--transition),opacity var(--transition)}.btn:hover{background:var(--n1)}:root[data-theme="dark"] .btn:hover{background:var(--n8)}.primary{background:var(--accent);color:var(--accent-text);border-color:transparent}.primary:hover{opacity:.88;background:var(--accent)}.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}.overview{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--raised);box-shadow:var(--shadow)}.overview strong{font-size:1.05rem}.meta{font-size:.9rem;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.card,.box{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--raised);box-shadow:var(--shadow)}.card{padding:20px}.cardhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.card h2{font-size:1.05rem;margin:0 0 3px}.desc{font-size:.88rem;overflow-wrap:anywhere}.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;font-size:.76rem;font-weight:750;white-space:nowrap}.badge .icon{font-size:.9rem}.up{color:var(--green);background:var(--green-bg)}.down{color:var(--red);background:var(--red-bg)}.checking{color:var(--muted);background:var(--n1)}.opaque{color:var(--amber);background:var(--amber-bg)}.metrics{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--border);margin-top:18px;padding-top:14px}.metrics span{display:block;color:var(--muted);font-size:.78rem}.metrics strong{font-size:.92rem;font-variant-numeric:tabular-nums}.section{margin-top:24px}.section h2{font-size:1.05rem;margin:0 0 10px}.box{padding:16px}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field label{display:block;font-weight:650;font-size:.88rem;margin-bottom:5px}.field input,.field select{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);padding:9px 10px}.hint{font-size:.8rem;color:var(--muted);margin-top:5px}.setting-actions{display:flex;gap:8px;align-items:center;margin-top:16px}details>summary{font-weight:700;cursor:pointer}.log{max-height:260px;overflow:auto;padding:0;margin:0;list-style:none}.log li{padding:9px 2px;border-bottom:1px solid var(--border);font-size:.85rem}.log li:last-child{border:0}.logtime{color:var(--muted);margin-right:8px;font-variant-numeric:tabular-nums}.logempty{color:var(--muted);padding:8px}.logtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.logtop h2{margin:0}.footer{margin-top:20px;font-size:.8rem;color:var(--muted)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;transition:color var(--transition),background var(--transition)}
+button,input,select{font:inherit}button{cursor:pointer}
+.wrap{max-width:1100px;margin:auto;padding:32px 24px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
+.eyebrow{color:var(--accent);font-size:.78rem;font-weight:750;letter-spacing:.11em;text-transform:uppercase}
+h1{font-size:clamp(1.7rem,4vw,2.25rem);line-height:1.2;margin:4px 0}
+p.sub{margin:4px 0;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--raised);color:var(--text);padding:9px 14px;font-weight:650;transition:color var(--transition),background var(--transition),opacity var(--transition)}
+.btn:hover{background:var(--n1)}
+:root[data-theme="dark"] .btn:hover{background:var(--n8)}
+.primary{background:var(--accent);color:var(--accent-text);border-color:transparent}
+.primary:hover{opacity:.88;background:var(--accent)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.overview{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--raised);box-shadow:var(--shadow)}
+.overview strong{font-size:1.05rem}
+.meta{font-size:.9rem;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card,.box{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--raised);box-shadow:var(--shadow)}
+.card{padding:20px}
+.cardhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.card h2{font-size:1.05rem;margin:0 0 3px}
+.desc{font-size:.88rem;overflow-wrap:anywhere;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;font-size:.76rem;font-weight:750;white-space:nowrap}
+.badge .icon{font-size:.9rem}
+.up{color:var(--green);background:var(--green-bg)}
+.down{color:var(--red);background:var(--red-bg)}
+.checking{color:var(--muted);background:var(--n1)}
+.opaque{color:var(--amber);background:var(--amber-bg)}
+.retrying{color:var(--amber);background:var(--amber-bg)}
+.metrics{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--border);margin-top:18px;padding-top:14px}
+.metrics span{display:block;color:var(--muted);font-size:.78rem}
+.metrics strong{font-size:.92rem;font-variant-numeric:tabular-nums}
+.latency-chart{display:block;width:100%;height:58px;margin-top:14px;border-top:1px solid var(--border);padding-top:8px}
+.chart-caption{font-size:.75rem;color:var(--muted);margin-top:3px}
+.section{margin-top:24px}
+.section h2{font-size:1.05rem;margin:0 0 10px}
+.box{padding:16px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field label{display:block;font-weight:650;font-size:.88rem;margin-bottom:5px}
+.field input,.field select{width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);padding:9px 10px}
+.hint{font-size:.8rem;color:var(--muted);margin-top:5px}
+.setting-actions{display:flex;gap:8px;align-items:center;margin-top:16px}
+details>summary{font-weight:700;cursor:pointer;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--raised);list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details[open]>summary{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none}
+details[open]>.box{border-top:none;border-top-left-radius:0;border-top-right-radius:0}
+.log{max-height:280px;overflow:auto;padding:0;margin:0;list-style:none}
+.log li{padding:9px 2px;border-bottom:1px solid var(--border);font-size:.85rem;display:flex;gap:8px;align-items:baseline}
+.log li:last-child{border:0}
+.logtime{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.8rem}
+.logempty{color:var(--muted);padding:8px;font-size:.88rem}
+.logtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.logtop h2{margin:0}
+.log-badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:.72rem;font-weight:700;vertical-align:middle}
+.log-up{color:var(--green);background:var(--green-bg)}
+.log-down{color:var(--red);background:var(--red-bg)}
+.log-warn{color:var(--amber);background:var(--amber-bg)}
+.log-info{color:var(--muted);background:var(--n1)}
+.footer{margin-top:20px;font-size:.8rem;color:var(--muted);line-height:1.6}
 @media(max-width:700px){.wrap{padding:24px 16px}.top{align-items:flex-start;flex-direction:column}.cards{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}.overview{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
 <main class="wrap">
-<header class="top"><div><div class="eyebrow">PFG · Operations</div><h1>SMS Health Monitor</h1><p>Live availability for your SMS services.</p></div><div class="actions"><button id="themeBtn" class="btn" type="button" aria-label="Toggle light and dark theme">◐ Theme</button><button id="checkBtn" class="btn primary" type="button">↻ Check Now</button></div></header>
-<section class="overview" aria-live="polite"><div><strong id="overall">Waiting for first check</strong><div class="meta" id="refreshInfo">Auto-refresh is off</div></div><div class="meta" id="countdown">Next check: —</div></section>
-<section class="cards" id="cards" aria-label="Service status"></section>
-<section class="section"><details id="settings"><summary>Settings &amp; notifications</summary><div class="box" style="margin-top:12px"><div class="settings-grid"><div class="field"><label for="interval">Auto-refresh interval</label><select id="interval"><option value="0">Off</option><option value="1">Every 1 minute</option><option value="5">Every 5 minutes</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option></select><div class="hint">Checks run in this browser tab while it is open.</div></div><div class="field"><label for="discord">Discord webhook URL (optional)</label><input id="discord" type="url" placeholder="https://discord.com/api/webhooks/…" autocomplete="off"><div class="hint">A notification is sent only after status changes or a manual check.</div></div><div class="field"><label for="ntfy">Ntfy.sh topic (optional)</label><input id="ntfy" type="text" placeholder="your-private-topic" autocomplete="off"><div class="hint">Topic name or full https://ntfy.sh/topic URL.</div></div></div><div class="setting-actions"><button id="saveBtn" class="btn primary" type="button">Save settings</button><span class="hint" id="saveMsg" role="status"></span></div></div></details></section>
-<section class="section"><div class="box"><div class="logtop"><h2>Recent events</h2><button id="clearBtn" class="btn" type="button">Clear Log</button></div><ol class="log" id="log" aria-live="polite"></ol></div></section>
-<div class="footer">Health checks run from your browser. Cross-origin restrictions may result in “Reachable (opaque)” rather than an HTTP status code.</div>
+  <header class="top">
+    <div>
+      <div class="eyebrow">PFG · Operations</div>
+      <h1>SMS Health Monitor</h1>
+      <p class="sub">Live availability for your SMS services.</p>
+    </div>
+    <div class="actions">
+      <button id="themeBtn" class="btn" type="button" aria-label="Toggle theme">◐ Theme</button>
+      <button id="checkBtn" class="btn primary" type="button">↻ Check Now</button>
+    </div>
+  </header>
+
+  <section class="overview" aria-live="polite">
+    <div>
+      <strong id="overall">Waiting for first check…</strong>
+      <div class="meta" id="refreshInfo">Auto-refresh: off</div>
+    </div>
+    <div class="meta" id="countdown"></div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Service status cards"></section>
+
+  <section class="section">
+    <details id="settingsDetails">
+      <summary>⚙ Settings &amp; Notifications</summary>
+      <div class="box">
+        <div class="settings-grid">
+          <div class="field">
+            <label for="interval">Auto-refresh interval</label>
+            <select id="interval">
+              <option value="0">Off</option>
+              <option value="1">Every 1 minute</option>
+              <option value="5">Every 5 minutes</option>
+              <option value="15">Every 15 minutes</option>
+              <option value="30">Every 30 minutes</option>
+            </select>
+            <div class="hint">Passive monitoring runs every 60 s regardless of this setting.</div>
+          </div>
+          <div class="field">
+            <label for="discord">Discord webhook URL</label>
+            <input id="discord" type="url" placeholder="https://discord.com/api/webhooks/…" autocomplete="off">
+            <div class="hint">Alert on first offline confirmation and on recovery.</div>
+          </div>
+          <div class="field">
+            <label for="ntfy">Ntfy topic</label>
+            <input id="ntfy" type="text" placeholder="your-private-topic" autocomplete="off">
+            <div class="hint">Topic name or full https://ntfy.sh/topic URL.</div>
+          </div>
+          <div class="field">
+            <label for="latencyThreshold">Latency alert threshold (ms)</label>
+            <input id="latencyThreshold" type="number" min="1" step="1" value="300" inputmode="numeric">
+            <div class="hint">Notify once per high-latency incident for each service; a new incident starts after latency returns below this threshold.</div>
+          </div>
+          <div class="field">
+            <label for="timeout">Fetch timeout (seconds)</label>
+            <select id="timeout">
+              <option value="5">5 s (default)</option>
+              <option value="8">8 s</option>
+              <option value="10">10 s</option>
+              <option value="15">15 s</option>
+            </select>
+          </div>
+        </div>
+        <div class="setting-actions">
+          <button id="saveBtn" class="btn primary" type="button">Save settings</button>
+          <span class="hint" id="saveMsg" role="status"></span>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="section">
+    <div class="box">
+      <div class="logtop">
+        <h2>Recent events</h2>
+        <button id="clearBtn" class="btn" type="button">Clear</button>
+      </div>
+      <ol class="log" id="log" aria-live="polite" aria-label="Event log">
+        <li class="logempty" id="logEmpty">No events yet.</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="footer">
+    Checks run from your browser tab — mixed-content (HTTP) endpoints may be blocked on HTTPS pages.
+    Opaque responses confirm reachability only; HTTP status is not available.
+    Passive monitoring is active only while this tab is open.
+  </div>
 </main>
+
 <script>
-// Add or edit checks here; fields: id, label, url, method, description.
+// ─── Service definitions ──────────────────────────────────────────────────────
+// Add or remove entries here. Fields: id, label, url, description.
 const CHECKS = [
-  {id:"gateway",label:"SMS Gateway",url:"http://sms.persiafava.com/webservice/rest/",method:"GET",description:"PFG REST endpoint"},
-  {id:"panel",label:"SMS Panel",url:"https://sms.persiafava.com/login.php",method:"GET",description:"PFG login panel"},
-  {id:"magfa",label:"Magfa Provider API",url:"https://sms.magfa.com/api/http/sms/v2",method:"GET",description:"Magfa SMS API v2"}
-  // Add more checks here
+  { id: "gateway", label: "SMS Gateway",       url: "http://sms.persiafava.com/webservice/rest/", description: "PFG REST endpoint" },
+  { id: "panel",   label: "SMS Panel",         url: "https://sms.persiafava.com/login.php",       description: "PFG login panel"   },
+  { id: "magfa",   label: "Magfa Provider API",url: "https://sms.magfa.com/api/http/sms/v2",      description: "Magfa SMS API v2"  }
 ];
-const $=s=>document.querySelector(s), STORE="pfg-health-", state={};
-const load=(k,d)=>{try{const x=localStorage.getItem(STORE+k);return x===null?d:JSON.parse(x)}catch{return d}}, save=(k,v)=>{try{localStorage.setItem(STORE+k,JSON.stringify(v))}catch{}};
-const stamp=()=>new Date().toLocaleString(), time=()=>new Date().toLocaleTimeString();
-function draw(){ $('#cards').innerHTML=CHECKS.map(c=>{const s=state[c.id]||{status:"CHECKING",latency:null,http:null,last:null};let cls=s.status==="UP"?"up":s.status==="DOWN"?"down":s.status==="Reachable (opaque)"?"opaque":"checking", icon=s.status==="UP"?"✓":s.status==="DOWN"?"✕":s.status==="Reachable (opaque)"?"◈":"…";return `<article class="card"><div class="cardhead"><div><h2>${esc(c.label)}</h2><div class="desc">${esc(c.description)}</div></div><span class="badge ${cls}" aria-label="Status: ${esc(s.status)}"><span class="icon" aria-hidden="true">${icon}</span>${esc(s.status)}</span></div><div class="metrics"><div><span>HTTP code</span><strong>${s.http??"—"}</strong></div><div><span>Latency</span><strong>${s.latency===null?"—":s.latency+" ms"}</strong></div><div><span>Last checked (local)</span><strong>${s.last?esc(s.last):"—"}</strong></div></div></article>`}).join("");updateOverview()}
-function esc(v){return String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-function overall(){const a=CHECKS.map(c=>state[c.id]?.status);if(a.some(x=>!x||x==="CHECKING"))return "CHECKING";if(a.every(x=>x==="UP"))return "ALL UP";if(a.every(x=>x==="DOWN"))return "ALL DOWN";return "DEGRADED"}
-function updateOverview(){const o=overall();$('#overall').textContent=o==="CHECKING"?"Checking services…":o;$('#refreshInfo').textContent=interval?`Auto-refresh every ${interval} minute${interval===1?"":"s"}`:"Auto-refresh is off"}
-let interval=Number(load("interval",0)),nextAt=0,timer=null,busy=false;
-function startTimer(){clearInterval(timer);if(!interval){nextAt=0;$('#countdown').textContent="Next check: —";updateOverview();return}nextAt=Date.now()+interval*60000;tick();timer=setInterval(tick,1000);updateOverview()}
-function tick(){if(!interval){$('#countdown').textContent="Next check: —";return}let n=Math.max(0,Math.ceil((nextAt-Date.now())/1000));$('#countdown').textContent=`Next check in ${Math.floor(n/60)}:${String(n%60).padStart(2,"0")}`;if(n===0&&!busy){nextAt=Date.now()+interval*60000;runCheck(false)}}
-function logEvent(text){let list=load("log",[]);list.unshift({at:stamp(),text});save("log",list.slice(0,20));renderLog()}
-function renderLog(){const list=load("log",[]);$('#log').innerHTML=list.length?list.map(x=>`<li><span class="logtime">${esc(x.at)}</span>${esc(x.text)}</li>`).join(""):'<li class="logempty">No events recorded.</li>'}
-async function request(c,mode){const ctl=new AbortController(),start=performance.now(),timeout=setTimeout(()=>ctl.abort(),5000);try{const r=await fetch(c.url,{method:c.method,mode,cache:"no-store",signal:ctl.signal});const latency=Math.round(performance.now()-start);clearTimeout(timeout);if(r.type==="opaque")return{status:"Reachable (opaque)",latency,http:null};return{status:r.ok?"UP":"DOWN",latency,http:r.status}}catch(e){clearTimeout(timeout);throw e}}
-async function check(c){try{return await request(c,"cors")}catch(e){if(e.name==="AbortError")return{status:"DOWN",latency:5000,http:null};try{return await request(c,"no-cors")}catch{return{status:"DOWN",latency:5000,http:null}}}}
-function message(){const lines=CHECKS.map(c=>{const s=state[c.id];return `${c.label.replace("SMS ","").replace(" Provider API","")}: ${s.status} (${s.latency??"—"}ms)`});return `[PFG Health] ${stamp()}\n${lines.join("\n")}\nOverall: ${overall()}`}
-async function notify(){const text=message(),webhook=$('#discord').value.trim(),topic=$('#ntfy').value.trim();const jobs=[];if(webhook)jobs.push(fetch(webhook,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({content:text})}));if(topic){let url=topic.startsWith("http")?topic:`https://ntfy.sh/${encodeURIComponent(topic)}`;jobs.push(fetch(url,{method:"POST",headers:{Title:"PFG Health",Tags:"satellite"},body:text}))}if(jobs.length)await Promise.allSettled(jobs)}
-async function runCheck(manual){if(busy)return;busy=true;const previous=CHECKS.map(c=>state[c.id]?.status);CHECKS.forEach(c=>state[c.id]={status:"CHECKING",latency:null,http:null,last:null});draw();const results=await Promise.all(CHECKS.map(check));CHECKS.forEach((c,i)=>state[c.id]={...results[i],last:time()});draw();const changed=previous.some((x,i)=>x!==state[CHECKS[i].id].status);logEvent(`${manual?"Manual check":"Health check"}: ${overall()}`);busy=false;if(manual||changed)await notify();if(interval&&manual)startTimer()}
-$('#checkBtn').addEventListener('click',()=>runCheck(true));$('#interval').value=String(interval);$('#interval').addEventListener('change',e=>{interval=Number(e.target.value);save("interval",interval);startTimer()});$('#discord').value=load("discord","");$('#ntfy').value=load("ntfy","");$('#saveBtn').addEventListener('click',()=>{$('#discord').value=$('#discord').value.trim();$('#ntfy').value=$('#ntfy').value.trim();save("discord",$('#discord').value);save("ntfy",$('#ntfy').value);$('#saveMsg').textContent="Settings saved on this device.";setTimeout(()=>$('#saveMsg').textContent="",2500)});$('#clearBtn').addEventListener('click',()=>{save("log",[]);renderLog()});
-const theme=load("theme","system");if(theme!=="system")document.documentElement.dataset.theme=theme;$('#themeBtn').addEventListener('click',()=>{const next=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=next;save("theme",next)});
-renderLog();draw();startTimer();
+
+// ─── Passive-monitoring constants ─────────────────────────────────────────────
+const PASSIVE_INTERVAL = 60;   // seconds between normal checks
+const RETRY_COUNT      = 5;    // retries before declaring DOWN
+const RETRY_INTERVAL   = 30;   // seconds between retries
+const HISTORY_LIMIT    = 30;   // latency samples retained per service
+
+// ─── Storage helpers ──────────────────────────────────────────────────────────
+const KEY = "pfg-health-";
+const load = (k, d) => { try { const v = localStorage.getItem(KEY + k); return v === null ? d : JSON.parse(v); } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch {} };
+
+// ─── Runtime state ────────────────────────────────────────────────────────────
+// status[id] = { status, latency, http, lastOk, lastChecked }
+const status = {};
+
+// incident[id] = null | { phase: "suspect" | "down", retries: 0..5, timer: timeoutId, alertSent: bool }
+const incident = {};
+// A high-latency alert stays deduplicated until that service returns below threshold.
+const latencyIncident = {};
+
+// Scheduler state
+let passiveTimer   = null;   // setInterval for passive 60-s checks
+let refreshTimer   = null;   // setInterval for auto-refresh panel
+let countdownTimer = null;
+let nextCheck      = null;
+
+// ─── Fetch with timeout ───────────────────────────────────────────────────────
+async function fetchCheck(url) {
+  const ms = (load("timeout", 5)) * 1000;
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), ms);
+  const t0 = Date.now();
+  try {
+    // Try CORS first; if it throws due to CORS policy catch will try no-cors
+    let res;
+    try {
+      res = await fetch(url, { method: "GET", signal: ctrl.signal, cache: "no-store" });
+      clearTimeout(tid);
+      return { status: "UP", latency: Date.now() - t0 };
+    } catch (corsErr) {
+      if (ctrl.signal.aborted) throw corsErr;
+      clearTimeout(tid);
+      // Fall back to no-cors (opaque)
+      const ctrl2 = new AbortController();
+      const tid2  = setTimeout(() => ctrl2.abort(), ms);
+      try {
+        await fetch(url, { method: "GET", mode: "no-cors", signal: ctrl2.signal, cache: "no-store" });
+        clearTimeout(tid2);
+        return { status: "OPAQUE", latency: Date.now() - t0 };
+      } catch (e2) {
+        clearTimeout(tid2);
+        throw e2;
+      }
+    }
+  } catch (err) {
+    clearTimeout(tid);
+    const reason = ctrl.signal.aborted ? "timeout" : (err.message || "unreachable");
+    return { status: "DOWN", latency: Date.now() - t0, reason };
+  }
+}
+
+// ─── Health assessment ────────────────────────────────────────────────────────
+// UP and OPAQUE both count as "reachable" for retry resolution.
+// OPAQUE is shown distinctly in the UI so users understand it is not confirmed healthy.
+function isReachable(s) { return s === "UP" || s === "OPAQUE"; }
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+async function notify(title, body, level) {
+  const discord = load("discord", "");
+  const ntfy    = load("ntfy", "");
+  const emoji   = level === "down" ? "🔴" : level === "resolved" ? "🟢" : "🟡";
+  const full    = `${emoji} ${title}: ${body}`;
+
+  if (discord) {
+    try {
+      await fetch(discord, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: full })
+      });
+    } catch {}
+  }
+
+  if (ntfy) {
+    const url = ntfy.startsWith("http") ? ntfy : `https://ntfy.sh/${ntfy}`;
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Title":    title,
+          "Priority": level === "down" ? "urgent" : level === "slow" ? "high" : "default",
+          "Tags":     level === "down" ? "rotating_light" : level === "slow" ? "warning" : "white_check_mark"
+        },
+        body: full
+      });
+    } catch {}
+  }
+}
+
+// ─── Incident lifecycle ───────────────────────────────────────────────────────
+function clearIncident(id) {
+  if (incident[id]?.timer) clearTimeout(incident[id].timer);
+  incident[id] = null;
+}
+
+function scheduleRetry(id) {
+  if (incident[id]?.timer) clearTimeout(incident[id].timer);
+  incident[id].timer = setTimeout(() => doRetry(id), RETRY_INTERVAL * 1000);
+}
+
+async function doRetry(id) {
+  const inc = incident[id];
+  if (!inc) return;
+
+  inc.retries += 1;
+  addLog(`Retry ${inc.retries}/${RETRY_COUNT} for ${labelOf(id)}`, "warn");
+  draw();
+
+  const result = await fetchCheck(urlOf(id));
+  if (incident[id] !== inc) return;
+  updateStatus(id, result);
+
+  if (isReachable(result.status)) {
+    // Service came back before or during retries
+    const wasAlerted = inc.alertSent;
+    clearIncident(id);
+    draw();
+    if (wasAlerted) {
+      // Only send resolved if we already sent an offline alert
+      addLog(`${labelOf(id)} recovered — Resolved`, "up");
+      notify(labelOf(id), "Service recovered (Resolved)", "resolved");
+    } else {
+      // Came back before the offline alert was sent — log recovery, no resolved notification
+      addLog(`${labelOf(id)} recovered before offline alert`, "up");
+    }
+    return;
+  }
+
+  if (inc.retries >= RETRY_COUNT) {
+    // All retries exhausted — fire offline alert exactly once
+    if (!inc.alertSent) {
+      inc.alertSent = true;
+      inc.phase = "down";
+      const reason = result.reason ? ` (${result.reason})` : "";
+      addLog(`${labelOf(id)} OFFLINE after ${RETRY_COUNT} retries${reason}`, "down");
+      notify(labelOf(id), `Offline after ${RETRY_COUNT} retries${reason}`, "down");
+    }
+    // Continue passive checks; no more retry loop until next passive tick recovers it
+    draw();
+    return;
+  }
+
+  // More retries remain
+  scheduleRetry(id);
+  draw();
+}
+
+// ─── Latency history and threshold alerts ─────────────────────────────────────
+function recordLatency(id, latency) {
+  const history = load(`history-${id}`, []);
+  history.push({ t: Date.now(), latency });
+  if (history.length > HISTORY_LIMIT) history.splice(0, history.length - HISTORY_LIMIT);
+  save(`history-${id}`, history);
+}
+
+function checkLatencyThreshold(id, result) {
+  const threshold = Math.max(1, Number(load("latencyThreshold", 300)) || 300);
+  if (isReachable(result.status) && Number.isFinite(result.latency) && result.latency > threshold) {
+    if (!latencyIncident[id]) {
+      latencyIncident[id] = true;
+      addLog(`${labelOf(id)} latency ${result.latency} ms exceeds ${threshold} ms`, "warn");
+      notify(`High latency — ${labelOf(id)}`, `Latency is ${result.latency} ms (threshold: ${threshold} ms)`, "slow");
+    }
+  } else if (isReachable(result.status) && Number.isFinite(result.latency)) {
+    latencyIncident[id] = false;
+  }
+}
+
+// Also used for retry measurements so every completed check contributes to history.
+function updateStatus(id, result) {
+  status[id] = {
+    status: result.status, latency: result.latency, http: result.http ?? null,
+    lastChecked: new Date(),
+    lastOk: isReachable(result.status) ? new Date() : (status[id]?.lastOk ?? null)
+  };
+  recordLatency(id, result.latency);
+  checkLatencyThreshold(id, result);
+}
+
+// ─── Process a single check result ────────────────────────────────────────────
+function processResult(id, result) {
+  const prev  = status[id]?.status;
+  const isNew = prev === undefined;
+
+  status[id] = {
+    status:      result.status,
+    latency:     result.latency,
+    lastChecked: new Date(),
+    lastOk:      isReachable(result.status) ? new Date() : (status[id]?.lastOk ?? null)
+  };
+  recordLatency(id, result.latency);
+  checkLatencyThreshold(id, result);
+
+  const inc = incident[id];
+
+  if (isReachable(result.status)) {
+    if (inc) {
+      // Recovered at normal check cadence (after previous incident was fully down)
+      const wasAlerted = inc.alertSent;
+      clearIncident(id);
+      if (wasAlerted) {
+        addLog(`${labelOf(id)} recovered — Resolved`, "up");
+        notify(labelOf(id), "Service recovered (Resolved)", "resolved");
+      } else {
+        addLog(`${labelOf(id)} recovered`, "up");
+      }
+    } else if (!isNew && prev !== result.status) {
+      addLog(`${labelOf(id)} is now ${result.status}`, "up");
+    }
+  } else {
+    // Failure path
+    if (!inc) {
+      // Start a new incident in "suspect" phase
+      incident[id] = { phase: "suspect", retries: 0, timer: null, alertSent: false };
+      addLog(`${labelOf(id)} appears DOWN — starting retries`, "warn");
+      scheduleRetry(id);
+    } else if (inc.phase === "down" && !inc.alertSent) {
+      // Shouldn't happen but guard it
+      inc.alertSent = true;
+    }
+    // If already in suspect/retry loop or confirmed down, normal passive check just updates status display
+  }
+}
+
+// ─── Run all checks ───────────────────────────────────────────────────────────
+async function runChecks(source) {
+  if (source === "manual") addLog("Manual check triggered", "info");
+  CHECKS.forEach(c => { status[c.id] = { ...status[c.id], _checking: true }; });
+  drawOverall();
+  draw(); // show checking state
+
+  const results = await Promise.all(
+    CHECKS.map(c => fetchCheck(c.url).then(r => ({ id: c.id, ...r })))
+  );
+
+  results.forEach(r => processResult(r.id, r));
+  drawOverall();
+  draw();
+}
+
+// ─── Passive monitoring ───────────────────────────────────────────────────────
+function startPassive() {
+  if (passiveTimer) clearInterval(passiveTimer);
+  passiveTimer = setInterval(() => {
+    // Only run passive checks if the tab is visible
+    if (document.visibilityState === "visible") runChecks("passive");
+  }, PASSIVE_INTERVAL * 1000);
+}
+
+// ─── Auto-refresh (user-configured interval for panel refresh) ────────────────
+function applyRefresh() {
+  if (refreshTimer)   clearInterval(refreshTimer);
+  if (countdownTimer) clearInterval(countdownTimer);
+  nextCheck = null;
+  $('#countdown').textContent = "";
+
+  const mins = parseInt(load("interval", 0), 10);
+  if (mins > 0) {
+    nextCheck = Date.now() + mins * 60000;
+    refreshTimer = setInterval(() => {
+      runChecks("auto");
+      nextCheck = Date.now() + mins * 60000;
+    }, mins * 60000);
+    countdownTimer = setInterval(updateCountdown, 1000);
+    $('#refreshInfo').textContent = `Auto-refresh: every ${mins} min`;
+  } else {
+    $('#refreshInfo').textContent = "Auto-refresh: off";
+  }
+}
+
+function updateCountdown() {
+  if (!nextCheck) { $('#countdown').textContent = ""; return; }
+  const s = Math.max(0, Math.round((nextCheck - Date.now()) / 1000));
+  const m = Math.floor(s / 60), r = s % 60;
+  $('#countdown').textContent = `Next: ${m}:${String(r).padStart(2, "0")}`;
+}
+
+// ─── UI helpers ───────────────────────────────────────────────────────────────
+const $ = s => document.querySelector(s);
+const labelOf = id => CHECKS.find(c => c.id === id)?.label ?? id;
+const urlOf   = id => CHECKS.find(c => c.id === id)?.url   ?? "";
+
+function badgeClass(s) {
+  if (s === "UP")               return "up";
+  if (s === "DOWN")             return "down";
+  if (s === "OPAQUE")           return "opaque";
+  if (s === "CHECKING")         return "checking";
+  if (s?.startsWith("RETRY"))   return "retrying";
+  return "checking";
+}
+function badgeIcon(s) {
+  if (s === "UP")     return "✓";
+  if (s === "DOWN")   return "✕";
+  if (s === "OPAQUE") return "◈";
+  return "…";
+}
+function badgeLabel(s, inc) {
+  if (inc?.phase === "suspect") return `Retrying ${inc.retries}/${RETRY_COUNT}`;
+  if (s === "UP")     return "UP";
+  if (s === "DOWN")   return "DOWN";
+  if (s === "OPAQUE") return "Reachable (opaque)";
+  return "Checking…";
+}
+function fmt(d) {
+  if (!d) return "—";
+  return d.toLocaleTimeString();
+}
+function fmtMs(n) { return n == null ? "—" : `${n} ms`; }
+
+function draw() {
+  const cards = $('#cards');
+  cards.innerHTML = CHECKS.map(c => {
+    const s   = status[c.id];
+    const inc = incident[c.id];
+    const st  = s?.status ?? "CHECKING";
+    const bl  = badgeLabel(st, inc);
+    const bc  = inc?.phase === "suspect" ? "retrying"
+              : s == null ? "checking"
+              : badgeClass(st);
+    const bi  = (inc?.phase === "suspect") ? "↻" : badgeIcon(st);
+
+    return `
+    <article class="card">
+      <div class="cardhead">
+        <div>
+          <h2>${c.label}</h2>
+          <div class="desc">${c.description}</div>
+        </div>
+        <span class="badge ${bc}" role="status" aria-label="${c.label} status: ${bl}">
+          <span class="icon" aria-hidden="true">${bi}</span>${bl}
+        </span>
+      </div>
+      <div class="metrics">
+        <div><span>Latency</span><strong>${fmtMs(s?.latency)}</strong></div>
+        <div><span>Last check</span><strong>${fmt(s?.lastChecked)}</strong></div>
+        <div><span>Last OK</span><strong>${fmt(s?.lastOk)}</strong></div>
+      </div>
+      <canvas class="latency-chart" id="chart-${c.id}" role="img" aria-label="${c.label} latency history, last ${HISTORY_LIMIT} checks">Latency history chart</canvas>
+      <div class="chart-caption">Latency history · last ${HISTORY_LIMIT} checks</div>
+    </article>`;
+  }).join("");
+  CHECKS.forEach(c => drawLatencyChart(c.id));
+}
+
+function drawLatencyChart(id) {
+  const canvas = $(`#chart-${id}`);
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const width = Math.max(1, Math.round(rect.width * dpr));
+  const height = Math.max(1, Math.round(rect.height * dpr));
+  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, width, height);
+  const history = load(`history-${id}`, []).slice(-HISTORY_LIMIT);
+  if (!history.length) return;
+  const css = getComputedStyle(document.documentElement);
+  const lineColor = css.getPropertyValue("--accent").trim() || "#168";
+  const mutedColor = css.getPropertyValue("--muted").trim() || "#777";
+  const threshold = Math.max(1, Number(load("latencyThreshold", 300)) || 300);
+  const values = history.map(x => Number(x.latency)).filter(Number.isFinite);
+  if (!values.length) return;
+  const maxValue = Math.max(threshold, ...values) * 1.12 || 1;
+  const pad = 3 * dpr;
+  const xAt = i => history.length === 1 ? width / 2 : pad + i * (width - 2 * pad) / (history.length - 1);
+  const yAt = value => height - pad - (Math.min(value, maxValue) / maxValue) * (height - 2 * pad);
+  ctx.strokeStyle = mutedColor;
+  ctx.globalAlpha = 0.6;
+  ctx.lineWidth = 1 * dpr;
+  ctx.setLineDash([3 * dpr, 3 * dpr]);
+  const thresholdY = yAt(threshold);
+  ctx.beginPath(); ctx.moveTo(0, thresholdY); ctx.lineTo(width, thresholdY); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha = 1;
+  ctx.strokeStyle = lineColor; ctx.lineWidth = 2 * dpr; ctx.lineJoin = "round"; ctx.lineCap = "round";
+  ctx.beginPath();
+  history.forEach((sample, i) => {
+    const x = xAt(i), y = yAt(Number(sample.latency));
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+function drawOverall() {
+  const all = CHECKS.map(c => status[c.id]?._checking ? undefined : status[c.id]?.status);
+  const downs  = all.filter(s => s === "DOWN").length;
+  const opaques= all.filter(s => s === "OPAQUE").length;
+  const ups    = all.filter(s => s === "UP").length;
+
+  let msg;
+  if (all.some(s => s === undefined)) {
+    msg = "Checking services…";
+  } else if (downs === 0 && opaques === 0) {
+    msg = `All ${CHECKS.length} services UP`;
+  } else if (downs === CHECKS.length) {
+    msg = `All services DOWN`;
+  } else {
+    const parts = [];
+    if (ups)     parts.push(`${ups} UP`);
+    if (opaques) parts.push(`${opaques} opaque`);
+    if (downs)   parts.push(`${downs} DOWN`);
+    msg = parts.join(", ");
+  }
+  $('#overall').textContent = msg;
+}
+
+function addLog(msg, level) {
+  const log   = $('#log');
+  const empty = $('#logEmpty');
+  if (empty) empty.remove();
+
+  const history = load("log", []);
+  const entry   = { t: new Date().toISOString(), msg, level };
+  history.unshift(entry);
+  if (history.length > 20) history.length = 20;
+  save("log", history);
+
+  renderLog(history);
+}
+
+function renderLog(history) {
+  const log = $('#log');
+  if (!history.length) {
+    log.innerHTML = '<li class="logempty" id="logEmpty">No events yet.</li>';
+    return;
+  }
+  log.innerHTML = history.map(e => {
+    const cls = e.level === "up" ? "log-up"
+              : e.level === "down" ? "log-down"
+              : e.level === "warn" ? "log-warn"
+              : "log-info";
+    const t = new Date(e.t).toLocaleTimeString();
+    return `<li><span class="logtime">${t}</span><span class="log-badge ${cls}">${e.level.toUpperCase()}</span> ${e.msg}</li>`;
+  }).join("");
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+function loadSettings() {
+  $('#interval').value = load("interval", 0);
+  $('#discord').value  = load("discord", "");
+  $('#ntfy').value     = load("ntfy", "");
+  $('#timeout').value  = load("timeout", 5);
+  $('#latencyThreshold').value = load("latencyThreshold", 300);
+}
+
+$('#saveBtn').addEventListener('click', () => {
+  save("interval", parseInt($('#interval').value, 10));
+  save("discord",  $('#discord').value.trim());
+  save("ntfy",     $('#ntfy').value.trim());
+  save("timeout",  parseInt($('#timeout').value, 10));
+  const threshold = Math.max(1, parseInt($('#latencyThreshold').value, 10) || 300);
+  $('#latencyThreshold').value = threshold;
+  save("latencyThreshold", threshold);
+  applyRefresh();
+  draw();
+  const msg = $('#saveMsg');
+  msg.textContent = "Saved.";
+  setTimeout(() => { msg.textContent = ""; }, 2000);
+});
+
+// ─── Theme ────────────────────────────────────────────────────────────────────
+(function initTheme() {
+  const t = load("theme", "auto");
+  if (t === "dark")  document.documentElement.setAttribute("data-theme", "dark");
+  if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+})();
+
+$('#themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  save("theme", next);
+});
+
+// ─── Clear log ────────────────────────────────────────────────────────────────
+$('#clearBtn').addEventListener('click', () => {
+  save("log", []);
+  renderLog([]);
+});
+
+// ─── Manual check ─────────────────────────────────────────────────────────────
+$('#checkBtn').addEventListener('click', () => runChecks("manual"));
+
+// ─── Visibility API — resume passive checks when tab becomes visible ──────────
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") runChecks("passive");
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+loadSettings();
+renderLog(load("log", []));
+drawOverall();
+draw();
+startPassive();
+applyRefresh();
+runChecks("boot");
 </script>
-</body></html>
+</body>
+</html>
