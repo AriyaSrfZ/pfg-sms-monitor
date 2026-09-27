@@ -390,8 +390,9 @@ function processResult(id, result) {
       } else {
         addLog(`${labelOf(id)} recovered`, "up");
       }
-    } else if (!isNew && prev !== result.status) {
-      addLog(`${labelOf(id)} is now ${result.status}`, "up");
+    } else {
+      const lat = result.latency != null && isFinite(result.latency) ? ` — ${result.latency}ms` : "";
+      addLog(`${labelOf(id)} OK${lat}`, "up");
     }
   } else {
     // Failure path
@@ -420,6 +421,18 @@ async function runChecks(source) {
   );
 
   results.forEach(r => processResult(r.id, r));
+
+  if (source === "manual") {
+    results.forEach(r => {
+      const lat = r.latency != null && isFinite(r.latency) ? ` — ${r.latency}ms` : "";
+      notify(
+        labelOf(r.id),
+        `Manual check: ${r.status}${lat}`,
+        isReachable(r.status) ? "resolved" : "down"
+      );
+    });
+  }
+
   drawOverall();
   draw();
 }
