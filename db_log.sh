@@ -47,7 +47,7 @@ check_and_record() {
 # ── DNS / IP Resolution DB Logger ──────────────────────────────────
 DNS_DOMAIN="sms.persiafava.com"
 DNS_EXPECTED_IP="185.49.84.46"
-DNS_TIMEOUT=2
+DNS_TIMEOUT=3
 
 # Expanded Iranian ISPs, Provincial Resolvers & Public DNS
 declare -A DNS_SERVERS=(
@@ -80,6 +80,14 @@ log_dns_checks() {
       +time=$DNS_TIMEOUT +tries=2 2>/dev/null \
       | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
       | head -n 1 || true)
+
+    if [[ -z "$resolved" ]]; then
+      sleep 1
+      resolved=$(dig "${bind_opt[@]}" @"$dns_ip" "$DNS_DOMAIN" A +short \
+        +time=$DNS_TIMEOUT +tries=2 2>/dev/null \
+        | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
+        | head -n 1 || true)
+    fi
 
     if [ -z "$resolved" ]; then
       status="timeout"

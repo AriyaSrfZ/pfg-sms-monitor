@@ -13,6 +13,7 @@ declare -A SERVICES=(
 
 NTFY_SERVER=""
 NTFY_TOPIC=""
+TCI_LOG_ONLY="false"
 [[ -f "${ENV_FILE}" ]] && source "${ENV_FILE}"
 
 NTFY_URL=""
@@ -22,13 +23,15 @@ timestamp() { TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S'; }
 log()       { echo "[$(timestamp)] $*" >> "${LOG_FILE}"; }
 
 notify() {
-  local title="$1" msg="$2"
-  [[ -z "${NTFY_URL}" ]] && return 0
+  local title="$1" msg="$2" priority="${3:-high}" tags="${4:-warning}"
+  local url="${NTFY_URL:-https://ntfy.sh/HealthAlerts}"
+  [[ -z "${url}" ]] && return 0
   curl -s --max-time 5 \
     -H "Title: ${title}" \
-    -H "Priority: high" \
+    -H "Priority: ${priority}" \
+    -H "Tags: ${tags}" \
     -d "${msg}" \
-    "${NTFY_URL}" > /dev/null 2>&1 || true
+    "${url}" > /dev/null 2>&1 || true
 }
 
 check_service() {
@@ -49,14 +52,19 @@ check_service() {
   log "${name}: ${status} (HTTP ${http_code}, ${elapsed}ms)"
 
   if [[ "${status}" != "OK" ]]; then
-    notify "⚠️ SMS Monitor" "${name} is ${status} — HTTP ${http_code} after ${elapsed}ms"
+    notify "⚠️ SMS Monitor" "${name} is ${status} — HTTP ${http_code} after ${elapsed}ms" "high" "warning"
   fi
 }
 
 # ── DNS / IP Resolution Check ──────────────────────────────────────
 DNS_DOMAIN="sms.persiafava.com"
 DNS_EXPECTED_IP="185.49.84.46"
-DNS_TIMEOUT=2
+DNS_TIMEOUT=3
+
+# Anti-flap state tracking: 20 minutes debounce (4 consecutive 5-min checks)
+DNS_FAIL_THRESHOLD=4
+DNS_STATE_DIR="${HOME}/.pfg-dns-state"
+mkdir -p "${DNS_STATE_DIR}"
 
 # Expanded Iranian ISPs & Public Resolvers
 declare -A DNS_SERVERS=(
@@ -78,6 +86,9 @@ declare -A DNS_SERVERS=(
 
 check_dns_resolution() {
   local failed_isps=()
+  local recovered_isps=()
+  local has_non_tci_failure=false
+  local has_mismatch=false
 
   # Detect physical interface IP to bypass local VPN/TUN fake-IP (e.g. Clash/mihomo)
   local physical_ip bind_opt=()
@@ -86,40 +97,102 @@ check_dns_resolution() {
 
   for isp in "${!DNS_SERVERS[@]}"; do
     local dns_ip="${DNS_SERVERS[$isp]}"
+    local is_tci=false
+    [[ "$isp" == TCI-* ]] && is_tci=true
+
+    # Probe with quick retry to prevent single transient UDP packet loss false alarms
     local resolved
     resolved=$(dig "${bind_opt[@]}" @"$dns_ip" "$DNS_DOMAIN" A +short \
       +time=$DNS_TIMEOUT +tries=2 2>/dev/null \
       | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
       | head -n 1 || true)
 
-    if [ -z "$resolved" ]; then
-      failed_isps+=("$isp ($dns_ip): TIMEOUT (no response)")
-    elif [ "$resolved" != "$DNS_EXPECTED_IP" ]; then
-      failed_isps+=("$isp ($dns_ip): MISMATCH (got $resolved, expected $DNS_EXPECTED_IP)")
+    if [[ -z "$resolved" ]]; then
+      sleep 1
+      resolved=$(dig "${bind_opt[@]}" @"$dns_ip" "$DNS_DOMAIN" A +short \
+        +time=$DNS_TIMEOUT +tries=2 2>/dev/null \
+        | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
+        | head -n 1 || true)
+    fi
+
+    local fail_file="${DNS_STATE_DIR}/${isp}.fails"
+    local alert_file="${DNS_STATE_DIR}/${isp}.alerted"
+
+    if [[ -z "$resolved" ]]; then
+      # Resolver timed out
+      local fails=0
+      [[ -f "$fail_file" ]] && fails=$(cat "$fail_file" 2>/dev/null || echo 0)
+      fails=$(( fails + 1 ))
+      echo "$fails" > "$fail_file"
+
+      # Check if threshold reached (20 minutes = 4 consecutive cycles)
+      if (( fails >= DNS_FAIL_THRESHOLD )); then
+        if [[ "$is_tci" == true && "${TCI_LOG_ONLY,,}" == "true" ]]; then
+          log "DNS TCI-LOG-ONLY — $isp ($dns_ip): timeout for ${fails} checks (>=20m), push alert suppressed"
+        else
+          failed_isps+=("$isp ($dns_ip): TIMEOUT (${fails} cycles / $(( fails * 5 ))m)")
+          [[ "$is_tci" == false ]] && has_non_tci_failure=true
+          touch "$alert_file"
+        fi
+      else
+        log "DNS DEBOUNCE — $isp ($dns_ip): timeout count ${fails}/${DNS_FAIL_THRESHOLD} (debouncing for 20m threshold)"
+      fi
+
+    elif [[ "$resolved" != "$DNS_EXPECTED_IP" ]]; then
+      # Critical IP MISMATCH — immediate alert, zero debounce delay
+      has_mismatch=true
+      [[ "$is_tci" == false ]] && has_non_tci_failure=true
+      failed_isps+=("$isp ($dns_ip): CRITICAL MISMATCH (got $resolved, expected $DNS_EXPECTED_IP)")
+      log "DNS MISMATCH — $isp ($dns_ip): got $resolved, expected $DNS_EXPECTED_IP"
+
+    else
+      # Resolution succeeded
+      if [[ -f "$alert_file" ]]; then
+        recovered_isps+=("$isp ($dns_ip)")
+      fi
+      rm -f "$fail_file" "$alert_file"
     fi
   done
 
+  # Send recovery alerts if previously failing resolvers came back
+  if [ ${#recovered_isps[@]} -gt 0 ]; then
+    local rec_msg="✅ DNS Recovery for ${DNS_DOMAIN}:"
+    for r in "${recovered_isps[@]}"; do
+      rec_msg+=$'\n'"• ${r} resolved correctly"
+    done
+    log "DNS RECOVERY — ${recovered_isps[*]}"
+    notify "✅ DNS Resolved" "${rec_msg}" "low" "white_check_mark,dns"
+  fi
+
+  # Send failure alerts if any threshold has been breached
   if [ ${#failed_isps[@]} -gt 0 ]; then
-    local alert_title="🚨 DNS Alert: ${#failed_isps[@]} resolver failure(s)"
-    local msg="⚠️ DNS Alert for ${DNS_DOMAIN}
+    local alert_title alert_priority alert_tags
+    if [[ "$has_mismatch" == true ]]; then
+      alert_priority="urgent"
+      alert_title="🚨 CRITICAL: DNS IP Mismatch on ${DNS_DOMAIN}"
+      alert_tags="rotating_light,dns"
+    elif [[ "$has_non_tci_failure" == true ]]; then
+      alert_priority="high"
+      alert_title="⚠️ DNS Alert: Resolver failure(s) (>=20m)"
+      alert_tags="warning,dns"
+    else
+      # All failures are TCI timeouts — low priority notification
+      alert_priority="low"
+      alert_title="ℹ️ TCI DNS Latency (20m+ Timeout)"
+      alert_tags="information,dns"
+    fi
+
+    local msg="DNS Alert for ${DNS_DOMAIN}
 Expected IP: ${DNS_EXPECTED_IP}
-Failed Resolvers (${#failed_isps[@]}):"
+Affected Resolvers (${#failed_isps[@]}):"
     for err in "${failed_isps[@]}"; do
       msg+=$'\n'"• ${err}"
     done
 
-    echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] DNS ALERT for $DNS_DOMAIN | Failed: ${failed_isps[*]}" >> /home/aria/projects/pfg-sms-monitor/pfg-notify.log
-    [[ "${LOG_FILE}" != "/home/aria/projects/pfg-sms-monitor/pfg-notify.log" ]] && echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] DNS ALERT for $DNS_DOMAIN | Failed: ${failed_isps[*]}" >> "${LOG_FILE}"
-
-    curl -s -o /dev/null \
-      -H "Title: ${alert_title}" \
-      -H "Priority: high" \
-      -H "Tags: warning,dns" \
-      -d "${msg}" \
-      https://ntfy.sh/HealthAlerts
+    log "DNS ALERT for ${DNS_DOMAIN} [Priority: ${alert_priority}] | ${failed_isps[*]}"
+    notify "${alert_title}" "${msg}" "${alert_priority}" "${alert_tags}"
   else
-    echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] DNS OK — all ISPs resolved $DNS_DOMAIN to $DNS_EXPECTED_IP" >> /home/aria/projects/pfg-sms-monitor/pfg-notify.log
-    [[ "${LOG_FILE}" != "/home/aria/projects/pfg-sms-monitor/pfg-notify.log" ]] && echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] DNS OK — all ISPs resolved $DNS_DOMAIN to $DNS_EXPECTED_IP" >> "${LOG_FILE}"
+    log "DNS OK — all active ISPs resolved ${DNS_DOMAIN} to ${DNS_EXPECTED_IP}"
   fi
 }
 

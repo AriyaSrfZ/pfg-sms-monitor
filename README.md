@@ -133,7 +133,13 @@ Refactored [`index.html`](index.html) following strict UI/UX design intelligence
   6. Recent Events & Audit Stream (Live chronological timeline)
   7. Settings & Notification Integrations (Bottom collapsible drawer)
 - **Vector Iconography**: Replaced all emojis with crisp inline SVG icons (Lucide / Heroicons style).
-- **Enterprise Dark Tech Style**: Frosted glass effects, WCAG AA contrast (≥ 4.5:1), and monospace typography for latency and IP metrics.
+### 7. Alert Fatigue Mitigation & Anti-Flap Architecture
+To prevent notification fatigue caused by periodic UDP packet drops on public TCI recursive resolvers (`217.218.127.127` and `217.218.155.155`):
+- **20-Minute Anti-Flap Debounce Threshold**: Timeouts are debounced across 4 consecutive 5-minute cron cycles (`FAIL_THRESHOLD=4`). Transient drops lasting under 20 minutes are logged internally to `~/.pfg-dns-state/` without triggering push notifications.
+- **TCI-Specific Low Priority Level**: When sustained TCI timeouts exceed 20 minutes, alerts are dispatched at **low priority** (`Priority: low`), providing silent notifications without audible ringtones or vibrations.
+- **Immediate Security Alerts (Zero Delay)**: Any `MISMATCH` (where a resolver returns an unexpected IP) bypasses debouncing and immediately dispatches an urgent SEV-1 alert.
+- **Configurable Log-Only Mode**: Users can set `TCI_LOG_ONLY=true` in `~/.pfg-monitor.env` to completely suppress TCI push notifications while preserving full historical logging in PostgreSQL and log files.
+- **Probe Retry Mechanism**: Added an automatic 1-second secondary UDP probe retry before registering a timeout cycle, filtering out momentary domestic packet jitter.
 
 ---
 
