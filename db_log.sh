@@ -116,9 +116,32 @@ $resolved_sql, '$status', '$message');" \
   done
 }
 
+export_dns_json() {
+  local json_file="/home/aria/projects/pfg-sms-monitor/dns_status.json"
+  docker exec "${PG_CONTAINER}" psql -U "${PG_USER}" -d "${PG_DB}" -t -A -c "
+SELECT json_build_object(
+  'domain', 'sms.persiafava.com',
+  'expected_ip', '185.49.84.46',
+  'updated_at', to_char(now() AT TIME ZONE 'Asia/Tehran', 'YYYY-MM-DD HH24:MI:SS'),
+  'resolvers', json_agg(t)
+) FROM (
+  SELECT DISTINCT ON (isp_name)
+    isp_name,
+    dns_server,
+    resolved_ip,
+    status,
+    message,
+    to_char(checked_at AT TIME ZONE 'Asia/Tehran', 'YYYY-MM-DD HH24:MI:SS') as checked_at
+  FROM dns_checks
+  ORDER BY isp_name, checked_at DESC
+) t;
+" > "${json_file}" 2>/dev/null || true
+}
+
 log "--- db log start ---"
 for name in "SMS Gateway" "SMS Panel" "Magfa Provider"; do
   check_and_record "${name}" "${SERVICES[${name}]}"
 done
 log_dns_checks
+export_dns_json
 log "--- db log end ---"
