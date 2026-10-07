@@ -57,44 +57,65 @@ check_service() {
 DNS_DOMAIN="sms.persiafava.com"
 DNS_EXPECTED_IP="185.49.84.46"
 DNS_TIMEOUT=2
+
+# Expanded Iranian ISPs & Public Resolvers
 declare -A DNS_SERVERS=(
-  ["MCI"]="5.200.200.200"
-  ["Irancell"]="109.96.8.8"
-  ["TCI"]="2.188.242.80"
-  ["TCI-Backup"]="217.218.155.155"
-  ["Shatel"]="85.15.1.14"
-  ["Asiatech"]="194.225.70.10"
-  ["Shecan"]="178.22.122.100"
+  ["TCI-Tehran"]="217.218.155.155"
+  ["TCI-Backup"]="217.218.127.127"
+  ["TCI-Fars"]="2.189.242.10"
+  ["MCI-Data"]="194.225.62.80"
+  ["Shecan-1"]="178.22.122.100"
+  ["Shecan-2"]="185.51.200.2"
+  ["Begzar"]="185.55.226.26"
+  ["Electro-1"]="78.157.42.101"
+  ["Electro-2"]="78.157.42.100"
+  ["Bertina-NS"]="185.88.152.12"
   ["Cloudflare"]="1.1.1.1"
   ["Google"]="8.8.8.8"
+  ["Quad9"]="9.9.9.9"
+  ["OpenDNS"]="208.67.222.222"
 )
 
 check_dns_resolution() {
   local failed_isps=()
+
+  # Detect physical interface IP to bypass local VPN/TUN fake-IP (e.g. Clash/mihomo)
+  local physical_ip bind_opt=()
+  physical_ip=$(ip -4 route show table main default 2>/dev/null | grep -oP 'src \K[0-9.]+' | head -n 1 || true)
+  [[ -n "${physical_ip}" ]] && bind_opt=(-b "${physical_ip}")
+
   for isp in "${!DNS_SERVERS[@]}"; do
     local dns_ip="${DNS_SERVERS[$isp]}"
     local resolved
-    resolved=$(dig @"$dns_ip" "$DNS_DOMAIN" A +short \
-      +time=$DNS_TIMEOUT +tries=1 2>/dev/null \
+    resolved=$(dig "${bind_opt[@]}" @"$dns_ip" "$DNS_DOMAIN" A +short \
+      +time=$DNS_TIMEOUT +tries=2 2>/dev/null \
       | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
       | head -n 1 || true)
 
     if [ -z "$resolved" ]; then
-      failed_isps+=("$isp:TIMEOUT")
+      failed_isps+=("$isp ($dns_ip): TIMEOUT (no response)")
     elif [ "$resolved" != "$DNS_EXPECTED_IP" ]; then
-      failed_isps+=("$isp:MISMATCH($resolved)")
+      failed_isps+=("$isp ($dns_ip): MISMATCH (got $resolved, expected $DNS_EXPECTED_IP)")
     fi
   done
 
   if [ ${#failed_isps[@]} -gt 0 ]; then
-    local msg="DNS ALERT for $DNS_DOMAIN | Failed ISPs: ${failed_isps[*]}"
-    echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] $msg" >> /home/aria/projects/pfg-sms-monitor/pfg-notify.log
-    [[ "${LOG_FILE}" != "/home/aria/projects/pfg-sms-monitor/pfg-notify.log" ]] && echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] $msg" >> "${LOG_FILE}"
+    local alert_title="🚨 DNS Alert: ${#failed_isps[@]} resolver failure(s)"
+    local msg="⚠️ DNS Alert for ${DNS_DOMAIN}
+Expected IP: ${DNS_EXPECTED_IP}
+Failed Resolvers (${#failed_isps[@]}):"
+    for err in "${failed_isps[@]}"; do
+      msg+=$'\n'"• ${err}"
+    done
+
+    echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] DNS ALERT for $DNS_DOMAIN | Failed: ${failed_isps[*]}" >> /home/aria/projects/pfg-sms-monitor/pfg-notify.log
+    [[ "${LOG_FILE}" != "/home/aria/projects/pfg-sms-monitor/pfg-notify.log" ]] && echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] DNS ALERT for $DNS_DOMAIN | Failed: ${failed_isps[*]}" >> "${LOG_FILE}"
+
     curl -s -o /dev/null \
-      -H "Title: DNS Resolution Failure" \
+      -H "Title: ${alert_title}" \
       -H "Priority: high" \
       -H "Tags: warning,dns" \
-      -d "$msg" \
+      -d "${msg}" \
       https://ntfy.sh/HealthAlerts
   else
     echo "[$(TZ='Asia/Tehran' date '+%Y-%m-%d %H:%M:%S')] DNS OK — all ISPs resolved $DNS_DOMAIN to $DNS_EXPECTED_IP" >> /home/aria/projects/pfg-sms-monitor/pfg-notify.log
