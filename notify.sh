@@ -37,6 +37,8 @@ notify() {
 check_service() {
   local name="$1" url="$2"
   local start end elapsed http_code status
+  local svc_key="${name// /_}"
+  local alert_file="${DNS_STATE_DIR}/svc_${svc_key}.alerted"
 
   start=$(date +%s%3N)
   http_code=$(curl -s -o /dev/null -w "%{http_code}" \
@@ -52,7 +54,18 @@ check_service() {
   log "${name}: ${status} (HTTP ${http_code}, ${elapsed}ms)"
 
   if [[ "${status}" != "OK" ]]; then
-    notify "⚠️ SMS Monitor" "${name} is ${status} — HTTP ${http_code} after ${elapsed}ms" "high" "warning"
+    local now_ts last_alert=0
+    now_ts=$(date +%s)
+    [[ -f "$alert_file" ]] && last_alert=$(cat "$alert_file" 2>/dev/null || echo 0)
+    if (( last_alert == 0 )) || (( now_ts - last_alert >= 3600 )); then
+      notify "⚠️ SMS Monitor" "${name} is ${status} — HTTP ${http_code} after ${elapsed}ms" "high" "warning"
+      echo "$now_ts" > "$alert_file"
+    fi
+  else
+    if [[ -f "$alert_file" ]]; then
+      notify "✅ SMS Monitor Recovered" "${name} is OK (HTTP ${http_code}, ${elapsed}ms)" "low" "white_check_mark"
+      rm -f "$alert_file"
+    fi
   fi
 }
 
@@ -130,9 +143,18 @@ check_dns_resolution() {
         if [[ "$is_tci" == true && "${TCI_LOG_ONLY,,}" == "true" ]]; then
           log "DNS TCI-LOG-ONLY — $isp ($dns_ip): timeout for ${fails} checks (>=20m), push alert suppressed"
         else
-          failed_isps+=("$isp ($dns_ip): TIMEOUT (${fails} cycles / $(( fails * 5 ))m)")
-          [[ "$is_tci" == false ]] && has_non_tci_failure=true
-          touch "$alert_file"
+          local now_ts last_alert=0
+          now_ts=$(date +%s)
+          [[ -f "$alert_file" ]] && last_alert=$(cat "$alert_file" 2>/dev/null || echo 0)
+
+          # Notify ONCE on initial failure. Only re-notify if down for >= 1 hour (3600s)
+          if (( last_alert == 0 )) || (( now_ts - last_alert >= 3600 )); then
+            failed_isps+=("$isp ($dns_ip): TIMEOUT (${fails} cycles / $(( fails * 5 ))m)")
+            [[ "$is_tci" == false ]] && has_non_tci_failure=true
+            echo "$now_ts" > "$alert_file"
+          else
+            log "DNS TIMEOUT PERSISTS — $isp ($dns_ip): ${fails} cycles ($(( fails * 5 ))m), suppressed (alerted $(( (now_ts - last_alert) / 60 ))m ago)"
+          fi
         fi
       else
         log "DNS DEBOUNCE — $isp ($dns_ip): timeout count ${fails}/${DNS_FAIL_THRESHOLD} (debouncing for 20m threshold)"
